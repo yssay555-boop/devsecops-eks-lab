@@ -23,17 +23,27 @@ jobs:
         uses: aws-actions/configure-aws-credentials@v4
         with:
           role-to-assume: ${{ secrets.AWS_ROLE_TO_ASSUME }}
-          aws-region: ${{ env.AWS_REGION }}
+          aws-region: ap-northeast-2
+          audience: sts.amazonaws.com
 
       - name: Login to ECR
         id: ecr
         uses: aws-actions/amazon-ecr-login@v2
 
       - name: Build
+        shell: bash
         run: |
-          IMAGE="${{ steps.ecr.outputs.registry }}/${{ secrets.ECR_REPO }}:${{ github.sha }}"
+          set -euo pipefail
+          REGISTRY="${{ steps.ecr.outputs.registry }}"
+          REPO="${{ secrets.ECR_REPO }}"
+
+          # 방어: CR/LF 제거 (줄바꿈 있으면 Docker가 invalid reference format로 터짐)
+          REGISTRY="$(echo -n "$REGISTRY" | tr -d '\r\n')"
+          REPO="$(echo -n "$REPO" | tr -d '\r\n')"
+
+          IMAGE="${REGISTRY}/${REPO}:${{ github.sha }}"
+          echo "IMAGE=$IMAGE" >> "$GITHUB_ENV"
           docker build -t "$IMAGE" ./app
-          echo "IMAGE=$IMAGE" >> $GITHUB_ENV
 
       - name: Trivy scan (fail on CRITICAL/HIGH)
         uses: aquasecurity/trivy-action@0.24.0
