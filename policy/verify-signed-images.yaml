@@ -1,4 +1,4 @@
-apiVersion: kyverno.io/v1
+﻿apiVersion: kyverno.io/v1
 kind: ClusterPolicy
 metadata:
   name: verify-signed-images
@@ -9,7 +9,8 @@ spec:
     match:
       any:
       - resources:
-          kinds: ["Pod"]
+          kinds:
+          - Pod
     verifyImages:
     - imageReferences:
       - "*"
@@ -20,4 +21,8 @@ spec:
       - entries:
         - keyless:
             issuer: "https://token.actions.githubusercontent.com"
-            subjectRegExp: "repo:yssay555-boop/devsecops-eks-lab/\\.github/workflows/ci-cd\\.yml@refs/heads/main$"
+            # ✅ 실제로 에러에 찍힌 subject 형식에 맞춤
+            subjectRegExp: "^https://github\\.com/yssay555-boop/devsecops-eks-lab/\\.github/workflows/ci-cd\\.yml@refs/heads/main$"
+            # ✅ 이게 없어서 너가 막힌 것
+            rekor:
+              url: "https://rekor.sigstore.dev"
