@@ -73,6 +73,7 @@ jobs:
 
       - name: Deploy
         run: |
+          aws eks update-kubeconfig --name secure-eks --region ap-northeast-2
           kubectl apply -f k8s/namespace.yaml --validate=false
           cat k8s/deployment.yaml | sed "s|IMAGE_PLACEHOLDER|${{ env.IMAGE }}|g" > /tmp/deploy.yaml
           kubectl apply -f /tmp/deploy.yaml
