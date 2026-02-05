@@ -20,4 +20,4 @@ spec:
       - entries:
         - keyless:
             issuer: "https://token.actions.githubusercontent.com"
-            subjectRegExp: "repo:yssay555-boop/devsecops-eks-lab:.*"
+            subjectRegExp: "repo:yssay555-boop/devsecops-eks-lab/\\.github/workflows/ci-cd\\.yml@refs/heads/main$"
