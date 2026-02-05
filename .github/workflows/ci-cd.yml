@@ -55,13 +55,13 @@ jobs:
       - name: Push
         run: docker push "${{ env.IMAGE }}"
 
-      - name: Install cosign
-        uses: sigstore/cosign-installer@v3.8.0
+      #- name: Install cosign
+      #  uses: sigstore/cosign-installer@v3.8.0
 
-      - name: Cosign sign (keyless)
-        env:
-          COSIGN_EXPERIMENTAL: "true"
-        run: cosign sign --yes "${{ env.IMAGE }}"
+      #- name: Cosign sign (keyless)
+      #  env:
+      #    COSIGN_EXPERIMENTAL: "true"
+      #  run: cosign sign --yes "${{ env.IMAGE }}"
 
       - name: Setup kubectl
         uses: azure/setup-kubectl@v4
