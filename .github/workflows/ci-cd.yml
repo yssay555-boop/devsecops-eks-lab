@@ -41,9 +41,9 @@ jobs:
           REGISTRY="$(echo -n "$REGISTRY" | tr -d '\r\n')"
           REPO="$(echo -n "$REPO" | tr -d '\r\n')"
 
-          IMAGE="${REGISTRY}/${REPO}:${{ github.sha }}"
-          echo "IMAGE=$IMAGE" >> "$GITHUB_ENV"
+          IMAGE="${{ steps.ecr.outputs.registry }}/${{ secrets.ECR_REPO }}:${{ github.sha }}-${{ github.run_number }}"
           docker build -t "$IMAGE" ./app
+          echo "IMAGE=$IMAGE" >> $GITHUB_ENV
 
       - name: Trivy scan (fail on CRITICAL/HIGH)
         uses: aquasecurity/trivy-action@0.24.0
@@ -53,15 +53,15 @@ jobs:
           exit-code: "1"
 
       - name: Push
-        run: docker push "${{ env.IMAGE }}"
+        run: docker push "$IMAGE"
 
-      #- name: Install cosign
-      #  uses: sigstore/cosign-installer@v3.8.0
+      - name: Install cosign
+        uses: sigstore/cosign-installer@v3.8.0
 
-      #- name: Cosign sign (keyless)
-      #  env:
-      #    COSIGN_EXPERIMENTAL: "true"
-      #  run: cosign sign --yes "${{ env.IMAGE }}"
+      - name: Cosign sign (keyless)
+        env:
+          COSIGN_EXPERIMENTAL: "true"
+        run: cosign sign --yes "${{ env.IMAGE }}"
 
       - name: Setup kubectl
         uses: azure/setup-kubectl@v4
@@ -73,7 +73,6 @@ jobs:
 
       - name: Deploy
         run: |
-          aws eks update-kubeconfig --name secure-eks --region ap-northeast-2
           kubectl apply -f k8s/namespace.yaml --validate=false
           cat k8s/deployment.yaml | sed "s|IMAGE_PLACEHOLDER|${{ env.IMAGE }}|g" > /tmp/deploy.yaml
           kubectl apply -f /tmp/deploy.yaml
