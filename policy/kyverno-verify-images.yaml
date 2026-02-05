@@ -1,0 +1,23 @@
+apiVersion: kyverno.io/v1
+kind: ClusterPolicy
+metadata:
+  name: verify-signed-images
+spec:
+  validationFailureAction: Enforce
+  rules:
+  - name: require-cosign-keyless
+    match:
+      any:
+      - resources:
+          kinds: ["Pod"]
+    verifyImages:
+    - imageReferences:
+      - "*"
+      required: true
+      mutateDigest: true
+      verifyDigest: true
+      attestors:
+      - entries:
+        - keyless:
+            issuer: "https://token.actions.githubusercontent.com"
+            subjectRegExp: "repo:yssay555-boop/devsecops-eks-lab:.*"
